@@ -1,14 +1,13 @@
 import {
   Box,
   Button,
-  Divider,
   Flex,
   FormControl,
   Heading,
   Input,
-  color,
 } from "@chakra-ui/react";
-import React, { useRef, useState } from "react";
+import axios from "axios";
+import React, { useRef } from "react";
 
 const App = () => {
   const nameRef = useRef();
@@ -16,9 +15,7 @@ const App = () => {
   const descRef = useRef();
   const priceRef = useRef();
 
-  const [formData, setFormData] = useState("");
-
-  const submitHandler = (e) => {
+  const addNewTranscation = (e) => {
     e.preventDefault();
     const data = {
       name: nameRef?.current?.value,
@@ -26,8 +23,8 @@ const App = () => {
       dateTime: dateTimeRef?.current?.value,
       description: descRef?.current?.value,
     };
-    setFormData(data);
-    console.log(data);
+    const headers = { headers: { "Content-Type": "application/json" } };
+    axios.post("http://localhost:4000/api/transaction", data, headers);
   };
 
   const priceColor = priceRef.current?.value >= 0 ? "green" : "red";
@@ -37,7 +34,7 @@ const App = () => {
       <Heading textAlign={"center"} mb={5}>
         $Total <span>.00</span>
       </Heading>
-      <form onSubmit={submitHandler}>
+      <form onSubmit={addNewTranscation}>
         <Flex direction={"column"} gap={2}>
           <Flex gap={2}>
             <FormControl isRequired>
