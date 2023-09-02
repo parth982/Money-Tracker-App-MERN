@@ -13,11 +13,16 @@ app.post("/api/transaction", async (req, res) => {
   const { name, price, dateTime, description } = req.body;
   const transaction = await Transaction.create({
     name,
+    price,
     dateTime,
     description,
   });
-  console.log(transaction);
-  res.json(req.body);
+  res.json(transaction);
+});
+
+app.get("/api/transactions", async (req, res) => {
+  const transactions = await Transaction.find({});
+  res.json(transactions);
 });
 
 const initiate = () => {

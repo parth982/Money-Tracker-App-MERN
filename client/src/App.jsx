@@ -1,38 +1,72 @@
 import {
   Box,
   Button,
+  Divider,
   Flex,
   FormControl,
   Heading,
   Input,
 } from "@chakra-ui/react";
 import axios from "axios";
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import Transaction from "./Transaction";
 
 const App = () => {
   const nameRef = useRef();
   const dateTimeRef = useRef();
   const descRef = useRef();
   const priceRef = useRef();
+  const [transactions, setTransactions] = useState([]);
+
+  useEffect(() => {
+    getAllTransactions();
+  }, []);
 
   const addNewTranscation = (e) => {
     e.preventDefault();
     const data = {
       name: nameRef?.current?.value,
-      price: priceRef?.current?.value,
+      price: +priceRef?.current?.value,
       dateTime: dateTimeRef?.current?.value,
       description: descRef?.current?.value,
     };
+
     const headers = { headers: { "Content-Type": "application/json" } };
-    axios.post("http://localhost:4000/api/transaction", data, headers);
+    axios
+      .post("http://localhost:4000/api/transaction", data, headers)
+      .then((res) => {
+        getAllTransactions();
+        nameRef.current.value = "";
+        priceRef.current.value = "";
+        dateTimeRef.current.value = "";
+        descRef.current.value = "";
+      });
   };
 
-  const priceColor = priceRef.current?.value >= 0 ? "green" : "red";
+  const getAllTransactions = (e) => {
+    axios
+      .get("http://localhost:4000/api/transactions")
+      .then((res) => {
+        setTransactions(res.data);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  let balance = 0;
+  for (const transaction of transactions) balance += transaction.price;
+  balance = balance.toFixed(2);
+  const fraction = balance.split(".")[1];
+  balance = balance.split(".")[0];
+
+  const balanceColor = balance >= 0 ? "green" : "red";
+  const balanceDis =
+    balance >= 0 ? "+$" + Math.abs(balance) : "-$" + Math.abs(balance);
 
   return (
     <Box maxWidth={"600px"} m={"10px auto"}>
-      <Heading textAlign={"center"} mb={5}>
-        $Total <span>.00</span>
+      <Heading textAlign={"center"} mb={5} color={balanceColor}>
+        {balanceDis}
+        <span>.{fraction}</span>
       </Heading>
       <form onSubmit={addNewTranscation}>
         <Flex direction={"column"} gap={2}>
@@ -57,34 +91,20 @@ const App = () => {
       </form>
 
       <Box mt={5}>
-        <Flex className="transaction" gap={2} justifyContent={"space-between"}>
-          <Flex direction={"column"}>
-            <Box>New Samsung TV</Box>
-            <Box fontSize={"sm"} color={"gray.500"}>
-              Brand New Super Display HD
+        <Divider mb={1} />
+        {transactions.length > 0 &&
+          transactions.map((t) => (
+            <Box mb={2}>
+              <Transaction
+                id={t._id}
+                name={t.name}
+                price={t.price}
+                description={t.description}
+                dateTime={t.dateTime}
+              />
+              <Divider mt={2} />
             </Box>
-          </Flex>
-          <Flex direction={"column"} textAlign={"right"}>
-            <Box color={priceColor}>$700</Box>
-            <Box fontSize={"sm"} color={"gray.500"}>
-              2023-08-14T18:38
-            </Box>
-          </Flex>
-        </Flex>
-        <Flex className="transaction" gap={2} justifyContent={"space-between"}>
-          <Flex direction={"column"}>
-            <Box>Apple Watch</Box>
-            <Box fontSize={"sm"} color={"gray.500"}>
-              Most Expensive Watch
-            </Box>
-          </Flex>
-          <Flex direction={"column"} textAlign={"right"}>
-            <Box color={priceColor}>$299</Box>
-            <Box fontSize={"sm"} color={"gray.500"}>
-              2021-02-13T18:32
-            </Box>
-          </Flex>
-        </Flex>
+          ))}
       </Box>
     </Box>
   );

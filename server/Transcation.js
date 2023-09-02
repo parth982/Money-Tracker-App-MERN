@@ -5,6 +5,10 @@ const TransactionScherma = new Schema({
     type: "string",
     required: true,
   },
+  price: {
+    type: "Number",
+    required: true,
+  },
   description: {
     type: "string",
     required: true,
